@@ -353,7 +353,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
                 _textboxAccount = new StbTextBox
                 (
                     5,
-                    16,
+                    30,
                     190,
                     false,
                     hue: 0x034F
