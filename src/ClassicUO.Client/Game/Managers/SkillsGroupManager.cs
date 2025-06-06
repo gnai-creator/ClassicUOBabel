@@ -1,34 +1,4 @@
-﻿#region license
-
-// Copyright (c) 2021, andreakarasho
-// All rights reserved.
-// 
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// 1. Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-// 3. All advertising materials mentioning features or use of this software
-//    must display the following acknowledgement:
-//    This product includes software developed by andreakarasho - https://github.com/andreakarasho
-// 4. Neither the name of the copyright holder nor the
-//    names of its contributors may be used to endorse or promote products
-//    derived from this software without specific prior written permission.
-// 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#endregion
+﻿// SPDX-License-Identifier: BSD-2-Clause
 
 using System;
 using System.Collections.Generic;
@@ -130,13 +100,13 @@ namespace ClassicUO.Game.Managers
             byte* table = stackalloc byte[60];
             int index = 0;
 
-            int count = SkillsLoader.Instance.SkillsCount;
+            int count = Client.Game.UO.FileManager.Skills.SkillsCount;
 
             for (int i = 0; i < count; i++)
             {
                 for (int j = 0; j < Count; j++)
                 {
-                    if (SkillsLoader.Instance.GetSortedIndex(i) == _list[j])
+                    if (Client.Game.UO.FileManager.Skills.GetSortedIndex(i) == _list[j])
                     {
                         table[index++] = _list[j];
 
@@ -184,23 +154,28 @@ namespace ClassicUO.Game.Managers
         }
     }
 
-    internal static class SkillsGroupManager
+    internal sealed class SkillsGroupManager
     {
-        public static readonly List<SkillsGroup> Groups = new List<SkillsGroup>();
+        private readonly World _world;
+
+        public SkillsGroupManager(World world) => _world = world;
 
 
-        public static void Add(SkillsGroup g)
+        public readonly List<SkillsGroup> Groups = new List<SkillsGroup>();
+
+
+        public void Add(SkillsGroup g)
         {
             Groups.Add(g);
         }
 
-        public static bool Remove(SkillsGroup g)
+        public bool Remove(SkillsGroup g)
         {
             if (Groups[0] == g)
             {
                 var camera = Client.Game.Scene.Camera;
 
-                MessageBoxGump messageBox = new MessageBoxGump(200, 125, ResGeneral.CannotDeleteThisGroup, null)
+                MessageBoxGump messageBox = new MessageBoxGump(_world, 200, 125, ResGeneral.CannotDeleteThisGroup, null)
                 {
                     X = camera.Bounds.X + camera.Bounds.Width / 2 - 100,
                     Y = camera.Bounds.Y + camera.Bounds.Height / 2 - 62
@@ -217,7 +192,7 @@ namespace ClassicUO.Game.Managers
             return true;
         }
 
-        public static void Load()
+        public void Load()
         {
             Groups.Clear();
 
@@ -226,7 +201,7 @@ namespace ClassicUO.Game.Managers
             if (!File.Exists(path))
             {
                 Log.Trace("No skillsgroups.xml file. Creating a default file.");
-             
+
                 MakeDefault();
 
                 return;
@@ -241,7 +216,7 @@ namespace ClassicUO.Game.Managers
             catch (Exception ex)
             {
                 MakeDefault();
-                
+
                 Log.Error(ex.ToString());
 
                 return;
@@ -273,7 +248,7 @@ namespace ClassicUO.Game.Managers
         }
 
 
-        public static void Save()
+        public void Save()
         {
             string path = Path.Combine(ProfileManager.ProfilePath, "skillsgroups.xml");
 
@@ -298,11 +273,11 @@ namespace ClassicUO.Game.Managers
         }
 
 
-        public static void MakeDefault()
+        public void MakeDefault()
         {
             Groups.Clear();
 
-            if (!LoadMULFile(UOFileManager.GetUOFilePath("skillgrp.mul")))
+            if (!LoadMULFile(Client.Game.UO.FileManager.GetUOFilePath("skillgrp.mul")))
             {
                 MakeDefaultMiscellaneous();
                 MakeDefaultCombat();
@@ -321,7 +296,7 @@ namespace ClassicUO.Game.Managers
             Save();
         }
 
-        private static void MakeDefaultMiscellaneous()
+        private void MakeDefaultMiscellaneous()
         {
             SkillsGroup g = new SkillsGroup();
             g.Name = ResGeneral.Miscellaneous;
@@ -336,9 +311,9 @@ namespace ClassicUO.Game.Managers
             Add(g);
         }
 
-        private static void MakeDefaultCombat()
+        private void MakeDefaultCombat()
         {
-            int count = SkillsLoader.Instance.SkillsCount;
+            int count = Client.Game.UO.FileManager.Skills.SkillsCount;
 
             SkillsGroup g = new SkillsGroup();
             g.Name = ResGeneral.Combat;
@@ -381,7 +356,7 @@ namespace ClassicUO.Game.Managers
             Add(g);
         }
 
-        private static void MakeDefaultTradeSkills()
+        private void MakeDefaultTradeSkills()
         {
             SkillsGroup g = new SkillsGroup();
             g.Name = ResGeneral.TradeSkills;
@@ -399,9 +374,9 @@ namespace ClassicUO.Game.Managers
             Add(g);
         }
 
-        private static void MakeDefaultMagic()
+        private void MakeDefaultMagic()
         {
-            int count = SkillsLoader.Instance.SkillsCount;
+            int count = Client.Game.UO.FileManager.Skills.SkillsCount;
 
             SkillsGroup g = new SkillsGroup();
             g.Name = ResGeneral.Magic;
@@ -437,7 +412,7 @@ namespace ClassicUO.Game.Managers
             Add(g);
         }
 
-        private static void MakeDefaultWilderness()
+        private void MakeDefaultWilderness()
         {
             SkillsGroup g = new SkillsGroup();
             g.Name = ResGeneral.Wilderness;
@@ -451,7 +426,7 @@ namespace ClassicUO.Game.Managers
             Add(g);
         }
 
-        private static void MakeDefaultThieving()
+        private void MakeDefaultThieving()
         {
             SkillsGroup g = new SkillsGroup();
             g.Name = ResGeneral.Thieving;
@@ -467,7 +442,7 @@ namespace ClassicUO.Game.Managers
             Add(g);
         }
 
-        private static void MakeDefaultBard()
+        private void MakeDefaultBard()
         {
             SkillsGroup g = new SkillsGroup();
             g.Name = ResGeneral.Bard;
@@ -479,7 +454,7 @@ namespace ClassicUO.Game.Managers
             Add(g);
         }
 
-        private static bool LoadMULFile(string path)
+        private bool LoadMULFile(string path)
         {
             FileInfo info = new FileInfo(path);
 
@@ -550,7 +525,7 @@ namespace ClassicUO.Game.Managers
                     {
                         int grp = bin.ReadInt32();
 
-                        if (grp < groups.Length && skillidx < SkillsLoader.Instance.SkillsCount)
+                        if (grp < groups.Length && skillidx < Client.Game.UO.FileManager.Skills.SkillsCount)
                         {
                             groups[grp].Add(skillidx++);
                         }

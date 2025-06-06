@@ -1,34 +1,4 @@
-﻿#region license
-
-// Copyright (c) 2021, andreakarasho
-// All rights reserved.
-// 
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// 1. Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-// 3. All advertising materials mentioning features or use of this software
-//    must display the following acknowledgement:
-//    This product includes software developed by andreakarasho - https://github.com/andreakarasho
-// 4. Neither the name of the copyright holder nor the
-//    names of its contributors may be used to endorse or promote products
-//    derived from this software without specific prior written permission.
-// 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#endregion
+﻿// SPDX-License-Identifier: BSD-2-Clause
 
 using System;
 using System.Linq;
@@ -51,7 +21,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
         private const ushort NORMAL_COLOR = 0x034F;
         private uint _selectedCharacter;
 
-        public CharacterSelectionGump() : base(0, 0)
+        public CharacterSelectionGump(World world) : base(world, 0, 0)
         {
             CanCloseWithRightClick = false;
 
@@ -61,14 +31,14 @@ namespace ClassicUO.Game.UI.Gumps.Login
             int listTitleY = 106;
 
             LoginScene loginScene = Client.Game.GetScene<LoginScene>();
-            
+
             string lastCharName = LastCharacterManager.GetLastCharacter(LoginScene.Account, World.ServerName);
             string lastSelected = loginScene.Characters.FirstOrDefault(o => o == lastCharName);
 
             LockedFeatureFlags f = World.ClientLockedFeatures.Flags;
             CharacterListFlags ff = World.ClientFeatures.Flags;
 
-            if (Client.Version >= ClientVersion.CV_6040 || Client.Version >= ClientVersion.CV_5020 && loginScene.Characters.Length > 5)
+            if (Client.Game.UO.Version >= ClientVersion.CV_6040 || Client.Game.UO.Version >= ClientVersion.CV_5020 && loginScene.Characters.Length > 5)
             {
                 listTitleY = 96;
                 yOffset = 125;
@@ -92,8 +62,8 @@ namespace ClassicUO.Game.UI.Gumps.Login
                 },
                 1
             );
-            
-            bool isAsianLang = string.Compare(Settings.GlobalSettings.Language, "CHT", StringComparison.InvariantCultureIgnoreCase) == 0 || 
+
+            bool isAsianLang = string.Compare(Settings.GlobalSettings.Language, "CHT", StringComparison.InvariantCultureIgnoreCase) == 0 ||
                 string.Compare(Settings.GlobalSettings.Language, "KOR", StringComparison.InvariantCultureIgnoreCase) == 0 ||
                 string.Compare(Settings.GlobalSettings.Language, "JPN", StringComparison.InvariantCultureIgnoreCase) == 0;
 
@@ -103,13 +73,13 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
             Add
             (
-                new Label(ClilocLoader.Instance.GetString(3000050, "Character Selection"), unicode, hue, font: font)
+                new Label(Client.Game.UO.FileManager.Clilocs.GetString(3000050, "Character Selection"), unicode, hue, font: font)
                 {
                     X = 267, Y = listTitleY
                 },
                 1
             );
-            
+
             for (int i = 0, valid = 0; i < loginScene.Characters.Length; i++)
             {
                 string character = loginScene.Characters[i];
@@ -130,7 +100,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
                             break;
                         }
                     }
-                    
+
                     Add
                     (
                         new CharacterEntryGump((uint) i, character, SelectCharacter, LoginCharacter)
@@ -261,6 +231,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
                 (
                     new LoadingGump
                     (
+                        World,
                         string.Format(ResGumps.PermanentlyDelete0, charName),
                         LoginButtons.OK | LoginButtons.Cancel,
                         buttonID =>

@@ -26,28 +26,28 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-       os: [ macos-latest, ubuntu-latest, windows-latest ]
+       os: [ macos-13, ubuntu-latest, windows-latest ]
 
     steps:
-    - uses: actions/checkout@v2
-      
+    - uses: actions/checkout@v4
+
     - name: Get submodules
       run: |
         git config --global url."https://".insteadOf git://
         git submodule update --init --recursive
-        
-    - name: Setup .NET 7
-      uses: actions/setup-dotnet@v3
+
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 7.0.x
-        include-prerelease: true
-        
+        dotnet-version: 9.0.x
+        include-prerelease: false
+
     - name: Restore
       run: dotnet restore
-      
+
     - name: Build
       run: dotnet build -c Release
-      
+
     - name: Test
-      run: dotnet test --verbosity normal
-   
+      run: dotnet test --verbosity normal tests/ClassicUO.UnitTests
+

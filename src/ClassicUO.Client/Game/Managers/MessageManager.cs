@@ -1,34 +1,4 @@
-﻿#region license
-
-// Copyright (c) 2021, andreakarasho
-// All rights reserved.
-// 
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// 1. Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-// 3. All advertising materials mentioning features or use of this software
-//    must display the following acknowledgement:
-//    This product includes software developed by andreakarasho - https://github.com/andreakarasho
-// 4. Neither the name of the copyright holder nor the
-//    names of its contributors may be used to endorse or promote products
-//    derived from this software without specific prior written permission.
-// 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#endregion
+﻿// SPDX-License-Identifier: BSD-2-Clause
 
 using System;
 using System.Collections.Generic;
@@ -41,6 +11,7 @@ using ClassicUO.Game.UI.Gumps;
 using ClassicUO.Assets;
 using ClassicUO.Renderer;
 using ClassicUO.Utility;
+using ClassicUO.Game.Scenes;
 
 namespace ClassicUO.Game.Managers
 {
@@ -68,16 +39,21 @@ namespace ClassicUO.Game.Managers
     }
 
 
-    internal static class MessageManager
+    internal sealed class MessageManager
     {
-        public static PromptData PromptData { get; set; }
+        private readonly World _world;
 
-        public static event EventHandler<MessageEventArgs> MessageReceived;
-
-        public static event EventHandler<MessageEventArgs> LocalizedMessageReceived;
+        public MessageManager(World world) => _world = world;
 
 
-        public static void HandleMessage
+        public PromptData PromptData { get; set; }
+
+        public event EventHandler<MessageEventArgs> MessageReceived;
+
+        public event EventHandler<MessageEventArgs> LocalizedMessageReceived;
+
+
+        public void HandleMessage
         (
             Entity parent,
             string text,
@@ -109,6 +85,37 @@ namespace ClassicUO.Game.Managers
                 case MessageType.Encoded:
                 case MessageType.System:
                 case MessageType.Party:
+                    if (!currentProfile.OverheadPartyMessages)
+                        break;
+
+                    if (parent == null) //No parent entity, need to check party members by name
+                    {
+                        foreach (PartyMember member in _world.Party.Members)
+                            if (member != null)
+                                if (member.Name == name) //Name matches message from server
+                                {
+                                    Mobile m = _world.Mobiles.Get(member.Serial);
+                                    if (m != null) //Mobile exists
+                                    {
+                                        parent = m;
+                                        break;
+                                    }
+                                }
+                    }
+
+                    if (type != MessageType.Spell && parent != null && _world.IgnoreManager.IgnoredCharsList.Contains(parent.Name))
+                        break;
+
+                    //Add null check in case parent was not found above.
+                    parent?.AddMessage(CreateMessage
+                    (
+                        text,
+                        hue,
+                        font,
+                        unicode,
+                        type,
+                        textType
+                    ));
                     break;
 
                 case MessageType.Guild:
@@ -171,7 +178,7 @@ namespace ClassicUO.Game.Managers
                     }
 
                     // If person who send that message is in ignores list - but filter out Spell Text
-                    if (IgnoreManager.IgnoredCharsList.Contains(parent.Name) && type != MessageType.Spell)
+                    if (_world.IgnoreManager.IgnoredCharsList.Contains(parent.Name) && type != MessageType.Spell)
                         break;
 
                     TextObject msg = CreateMessage
@@ -188,8 +195,8 @@ namespace ClassicUO.Game.Managers
 
                     if (parent is Item it && !it.OnGround)
                     {
-                        msg.X = DelayedObjectClickManager.X;
-                        msg.Y = DelayedObjectClickManager.Y;
+                        msg.X = _world.DelayedObjectClickManager.X;
+                        msg.Y = _world.DelayedObjectClickManager.Y;
                         msg.IsTextGump = true;
                         bool found = false;
 
@@ -251,12 +258,12 @@ namespace ClassicUO.Game.Managers
             );
         }
 
-        public static void OnLocalizedMessage(Entity entity, MessageEventArgs args)
+        public void OnLocalizedMessage(Entity entity, MessageEventArgs args)
         {
             LocalizedMessageReceived.Raise(args, entity);
         }
 
-        public static TextObject CreateMessage
+        public TextObject CreateMessage
         (
             string msg,
             ushort hue,
@@ -272,12 +279,12 @@ namespace ClassicUO.Game.Managers
                 isunicode = ProfileManager.CurrentProfile.OverrideAllFontsIsUnicode;
             }
 
-            int width = isunicode ? FontsLoader.Instance.GetWidthUnicode(font, msg) : FontsLoader.Instance.GetWidthASCII(font, msg);
+            int width = isunicode ? Client.Game.UO.FileManager.Fonts.GetWidthUnicode(font, msg) : Client.Game.UO.FileManager.Fonts.GetWidthASCII(font, msg);
 
             if (width > 200)
             {
                 width = isunicode ?
-                    FontsLoader.Instance.GetWidthExUnicode
+                    Client.Game.UO.FileManager.Fonts.GetWidthExUnicode
                     (
                         font,
                         msg,
@@ -285,7 +292,7 @@ namespace ClassicUO.Game.Managers
                         TEXT_ALIGN_TYPE.TS_LEFT,
                         (ushort) FontStyle.BlackBorder
                     ) :
-                    FontsLoader.Instance.GetWidthExASCII
+                    Client.Game.UO.FileManager.Fonts.GetWidthExASCII
                     (
                         font,
                         msg,
@@ -317,7 +324,7 @@ namespace ClassicUO.Game.Managers
             }
 
 
-            TextObject textObject = TextObject.Create();
+            TextObject textObject = TextObject.Create(_world);
             textObject.Alpha = 0xFF;
             textObject.Type = type;
             textObject.Hue = fixedColor;
@@ -326,7 +333,7 @@ namespace ClassicUO.Game.Managers
             {
                 fixedColor = 0x7FFF;
             }
-            
+
             textObject.RenderedText = RenderedText.Create
             (
                 msg,

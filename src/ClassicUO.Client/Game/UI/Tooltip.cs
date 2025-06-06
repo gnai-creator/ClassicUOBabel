@@ -1,34 +1,4 @@
-﻿#region license
-
-// Copyright (c) 2021, andreakarasho
-// All rights reserved.
-// 
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// 1. Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-// 3. All advertising materials mentioning features or use of this software
-//    must display the following acknowledgement:
-//    This product includes software developed by andreakarasho - https://github.com/andreakarasho
-// 4. Neither the name of the copyright holder nor the
-//    names of its contributors may be used to endorse or promote products
-//    derived from this software without specific prior written permission.
-// 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#endregion
+﻿// SPDX-License-Identifier: BSD-2-Clause
 
 using System;
 using System.Text;
@@ -49,6 +19,9 @@ namespace ClassicUO.Game.UI
         private int _maxWidth;
         private RenderedText _renderedText;
         private string _textHTML;
+        private readonly World _world;
+
+        public Tooltip(World world) => _world = world;
 
         public string Text { get; protected set; }
 
@@ -58,7 +31,7 @@ namespace ClassicUO.Game.UI
 
         public bool Draw(UltimaBatcher2D batcher, int x, int y)
         {
-            if (SerialHelper.IsValid(Serial) && World.OPL.TryGetRevision(Serial, out uint revision) && _hash != revision)
+            if (SerialHelper.IsValid(Serial) && _world.OPL.TryGetRevision(Serial, out uint revision) && _hash != revision)
             {
                 _hash = revision;
                 Text = ReadProperties(Serial, out _textHTML);
@@ -94,8 +67,8 @@ namespace ClassicUO.Game.UI
                 zoom = ProfileManager.CurrentProfile.TooltipDisplayZoom / 100f;
             }
 
-            FontsLoader.Instance.SetUseHTML(true);
-            FontsLoader.Instance.RecalculateWidthByInfo = true;
+            Client.Game.UO.FileManager.Fonts.SetUseHTML(true);
+            Client.Game.UO.FileManager.Fonts.RecalculateWidthByInfo = true;
 
             if (_renderedText == null)
             {
@@ -117,14 +90,14 @@ namespace ClassicUO.Game.UI
             {
                 if (_maxWidth == 0)
                 {
-                    int width = FontsLoader.Instance.GetWidthUnicode(font, Text);
+                    int width = Client.Game.UO.FileManager.Fonts.GetWidthUnicode(font, Text);
 
                     if (width > 600)
                     {
                         width = 600;
                     }
 
-                    width = FontsLoader.Instance.GetWidthExUnicode
+                    width = Client.Game.UO.FileManager.Fonts.GetWidthExUnicode
                     (
                         font,
                         Text,
@@ -150,8 +123,8 @@ namespace ClassicUO.Game.UI
                 _renderedText.Text = _textHTML;
             }
 
-            FontsLoader.Instance.RecalculateWidthByInfo = false;
-            FontsLoader.Instance.SetUseHTML(false);
+            Client.Game.UO.FileManager.Fonts.RecalculateWidthByInfo = false;
+            Client.Game.UO.FileManager.Fonts.SetUseHTML(false);
 
             if (_renderedText.Texture == null || _renderedText.Texture.IsDisposed)
             {
@@ -237,7 +210,7 @@ namespace ClassicUO.Game.UI
             {
                 uint revision2 = 0;
 
-                if (Serial == 0 || Serial != serial || World.OPL.TryGetRevision(Serial, out uint revision) && World.OPL.TryGetRevision(serial, out revision2) && revision != revision2)
+                if (Serial == 0 || Serial != serial || _world.OPL.TryGetRevision(Serial, out uint revision) && _world.OPL.TryGetRevision(serial, out revision2) && revision != revision2)
                 {
                     _maxWidth = 0;
                     Serial = serial;
@@ -257,7 +230,7 @@ namespace ClassicUO.Game.UI
             string result = null;
             htmltext = string.Empty;
 
-            if (SerialHelper.IsValid(serial) && World.OPL.TryGetNameAndData(serial, out string name, out string data))
+            if (SerialHelper.IsValid(serial) && _world.OPL.TryGetNameAndData(serial, out string name, out string data))
             {
                 ValueStringBuilder sbHTML = new ValueStringBuilder();
                 {
@@ -272,7 +245,7 @@ namespace ClassicUO.Game.UI
                             }
                             else
                             {
-                                Mobile mob = World.Mobiles.Get(serial);
+                                Mobile mob = _world.Mobiles.Get(serial);
 
                                 if (mob != null)
                                 {

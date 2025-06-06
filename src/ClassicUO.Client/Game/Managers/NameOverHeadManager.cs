@@ -1,34 +1,4 @@
-﻿#region license
-
-// Copyright (c) 2021, andreakarasho
-// All rights reserved.
-// 
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// 1. Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-// 3. All advertising materials mentioning features or use of this software
-//    must display the following acknowledgement:
-//    This product includes software developed by andreakarasho - https://github.com/andreakarasho
-// 4. Neither the name of the copyright holder nor the
-//    names of its contributors may be used to endorse or promote products
-//    derived from this software without specific prior written permission.
-// 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#endregion
+﻿// SPDX-License-Identifier: BSD-2-Clause
 
 using System;
 using ClassicUO.Configuration;
@@ -47,23 +17,26 @@ namespace ClassicUO.Game.Managers
         MobilesCorpses = Mobiles | Corpses
     }
 
-    internal static class NameOverHeadManager
+    internal sealed class NameOverHeadManager
     {
-        private static NameOverHeadHandlerGump _gump;
+        private NameOverHeadHandlerGump _gump;
+        private readonly World _world;
 
-        public static NameOverheadTypeAllowed TypeAllowed
+        public NameOverHeadManager(World world) { _world = world; }
+
+        public NameOverheadTypeAllowed TypeAllowed
         {
             get => ProfileManager.CurrentProfile.NameOverheadTypeAllowed;
             set => ProfileManager.CurrentProfile.NameOverheadTypeAllowed = value;
         }
 
-        public static bool IsToggled
+        public bool IsToggled
         {
             get => ProfileManager.CurrentProfile.NameOverheadToggled;
             set => ProfileManager.CurrentProfile.NameOverheadToggled = value;
         }
 
-        public static bool IsAllowed(Entity serial)
+        public bool IsAllowed(Entity serial)
         {
             if (serial == null)
             {
@@ -85,7 +58,7 @@ namespace ClassicUO.Game.Managers
                 return true;
             }
 
-            if (TypeAllowed.HasFlag(NameOverheadTypeAllowed.Corpses) && SerialHelper.IsItem(serial.Serial) && World.Items.Get(serial)?.IsCorpse == true)
+            if (TypeAllowed.HasFlag(NameOverheadTypeAllowed.Corpses) && SerialHelper.IsItem(serial.Serial) && _world.Items.Get(serial)?.IsCorpse == true)
             {
                 return true;
             }
@@ -93,11 +66,11 @@ namespace ClassicUO.Game.Managers
             return false;
         }
 
-        public static void Open()
+        public void Open()
         {
             if (_gump == null || _gump.IsDisposed)
             {
-                _gump = new NameOverHeadHandlerGump();
+                _gump = new NameOverHeadHandlerGump(_world);
                 UIManager.Add(_gump);
             }
 
@@ -105,16 +78,20 @@ namespace ClassicUO.Game.Managers
             _gump.IsVisible = true;
         }
 
-        public static void Close()
+        public void Close()
         {
             if (_gump == null)
-                return;
+            { //Required in case nameplates are active when closing and reopening the client
+                _gump = new NameOverHeadHandlerGump(_world);
+                UIManager.Add(_gump);
+            }
+
 
             _gump.IsEnabled = false;
             _gump.IsVisible = false;
         }
 
-        public static void ToggleOverheads()
+        public void ToggleOverheads()
         {
             IsToggled = !IsToggled;
         }

@@ -1,34 +1,4 @@
-#region license
-
-// Copyright (c) 2021, andreakarasho
-// All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// 1. Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-// 3. All advertising materials mentioning features or use of this software
-//    must display the following acknowledgement:
-//    This product includes software developed by andreakarasho - https://github.com/andreakarasho
-// 4. Neither the name of the copyright holder nor the
-//    names of its contributors may be used to endorse or promote products
-//    derived from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#endregion
+// SPDX-License-Identifier: BSD-2-Clause
 
 using System;
 using System.Runtime.CompilerServices;
@@ -45,14 +15,21 @@ namespace ClassicUO.Game.GameObjects
 {
     internal abstract class BaseGameObject : LinkedObject
     {
+        protected BaseGameObject(World world) => World = world;
+
         public Point RealScreenPosition;
+
+        public World World { get; }
     }
 
     internal abstract partial class GameObject : BaseGameObject
     {
+        protected GameObject(World world) : base(world) { }
+
         public bool IsDestroyed { get; protected set; }
         public bool IsPositionChanged { get; protected set; }
         public TextContainer TextContainer { get; private set; }
+        private AverageOverTime _averageOverTime;
 
         public int Distance
         {
@@ -102,7 +79,21 @@ namespace ClassicUO.Game.GameObjects
         public ushort X,
             Y;
         public sbyte Z;
-        public GameObject RenderListNext;
+
+        public void AddDamage(int damage)
+        {
+            _averageOverTime ??= new AverageOverTime(TimeSpan.FromSeconds(15));
+
+            _averageOverTime.AddValue(Time.Ticks, damage);
+        }
+        public double GetCurrentDPS()
+        {
+            if (_averageOverTime == null)
+            {
+                return 0;
+            }
+            return Math.Round(_averageOverTime.LastAveragePerSecond, 1);
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2 GetScreenPosition()
@@ -157,6 +148,7 @@ namespace ClassicUO.Game.GameObjects
             OnPositionChanged();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void UpdateRealScreenPosition(int offsetX, int offsetY)
         {
             RealScreenPosition.X = ((X - Y) * 22) - offsetX - 22;
@@ -210,7 +202,7 @@ namespace ClassicUO.Game.GameObjects
 
             Point p = RealScreenPosition;
 
-            var bounds = Client.Game.Arts.GetRealArtBounds(Graphic);
+            var bounds = Client.Game.UO.Arts.GetRealArtBounds(Graphic);
 
             p.Y -= bounds.Height >> 1;
 
@@ -316,7 +308,7 @@ namespace ClassicUO.Game.GameObjects
                 return;
             }
 
-            TextObject msg = MessageManager.CreateMessage(
+            TextObject msg = World.MessageManager.CreateMessage(
                 text,
                 hue,
                 font,
@@ -362,12 +354,11 @@ namespace ClassicUO.Game.GameObjects
 
             Next = null;
             Previous = null;
-            RenderListNext = null;
 
             Clear();
             RemoveFromTile();
             TextContainer?.Clear();
-
+            _averageOverTime = null;
             IsDestroyed = true;
             PriorityZ = 0;
             IsPositionChanged = false;
@@ -380,8 +371,11 @@ namespace ClassicUO.Game.GameObjects
             FrameInfo = Rectangle.Empty;
         }
 
-        public static bool CanBeDrawn(ushort g)
+        public static bool CanBeDrawn(World world, ushort g)
         {
+            if (Client.Game == null)
+                return true;
+
             switch (g)
             {
                 case 0x0001:
@@ -397,7 +391,7 @@ namespace ClassicUO.Game.GameObjects
                 case 0x9E64:
                 case 0x9E65:
                 case 0x9E7D:
-                    ref StaticTiles data = ref TileDataLoader.Instance.StaticData[g];
+                    ref var data = ref Client.Game.UO.FileManager.TileData.StaticData[g];
 
                     return !data.IsBackground && !data.IsSurface;
             }
@@ -413,20 +407,24 @@ namespace ClassicUO.Game.GameObjects
                 // In older clients the tiledata flag for this
                 // item contains NoDiagonal for some reason.
                 // So the next check will make the item invisible.
-                if (g == 0x0F65 && Client.Version < ClientVersion.CV_60144)
+                if (g == 0x0F65 && Client.Game.UO.Version < ClientVersion.CV_60144)
                 {
                     return true;
                 }
 
-                if (g < TileDataLoader.Instance?.StaticData?.Length)
+                if (g < Client.Game.UO.FileManager.TileData.StaticData.Length)
                 {
-                    ref StaticTiles data = ref TileDataLoader.Instance.StaticData[g];
+                    ref var data = ref Client.Game.UO.FileManager.TileData.StaticData[g];
+
+                    // Hacky way to do not render "nodraw"
+                    if (!string.IsNullOrEmpty(data.Name) && data.Name.StartsWith("nodraw", StringComparison.OrdinalIgnoreCase))
+                        return false;
 
                     if (
                         !data.IsNoDiagonal
                         || data.IsAnimated
-                            && World.Player != null
-                            && World.Player.Race == RaceType.GARGOYLE
+                            && world.Player != null
+                            && world.Player.Race == RaceType.GARGOYLE
                     )
                     {
                         return true;
