@@ -314,7 +314,7 @@ namespace ClassicUO.Game.UI.Gumps
                         for (int y = 0; y < 8; y++)
                         {
                             ref readonly var cell = ref cells[(y << 3) + x];
-                            int color = cell.TileID;
+                            int color = cell.TileID & 0x3FFF;
                             bool isLand = true;
                             int z = cell.Z;
 
