@@ -45,11 +45,12 @@ Or visit the [ClassicUO Website](https://www.classicuo.eu/)
 ```
 git clone --recursive https://github.com/ClassicUO/ClassicUO.git
 cd ClassicUO/scripts
-bash build-naot.sh
+bash build-naot.sh  # Linux/macOS
+build-naot.cmd      # Windows
 ```
 Binaries available in `bin/dist` folder
-> [!WARNING] 
-> To execute .sh scripts on Windows, use Git Bash which can be installed with Git itself: https://git-scm.com/download/win
+> [!WARNING]
+> Windows users can run `build-naot.cmd`. If you prefer running the `.sh` script, use Git Bash which can be installed with Git itself: https://git-scm.com/download/win
 
 # Contribute
 Everyone is welcome to contribute! The GitHub issues and project tracker are kept up to date with tasks that need work.
