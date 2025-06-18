@@ -144,6 +144,7 @@ namespace ClassicUO.Configuration
         public bool AlwaysRun { get; set; }
         public bool AlwaysRunUnlessHidden { get; set; }
         public bool SmoothMovements { get; set; } = true;
+
         public bool HoldDownKeyTab { get; set; } = true;
         public bool HoldShiftForContext { get; set; } = false;
         public bool HoldShiftToSplitStack { get; set; } = false;
@@ -207,6 +208,8 @@ namespace ClassicUO.Configuration
         public NameOverheadTypeAllowed NameOverheadTypeAllowed { get; set; } = NameOverheadTypeAllowed.All;
         public bool NameOverheadToggled { get; set; } = false;
         public bool ShowTargetRangeIndicator { get; set; }
+
+        public bool AutoAvoidObstacules { get; set; } = true;
         public bool PartyInviteGump { get; set; }
         public bool CustomBarsToggled { get; set; }
         public bool CBBlackBGToggled { get; set; }

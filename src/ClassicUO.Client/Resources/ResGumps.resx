@@ -327,6 +327,9 @@
   <data name="ShowTarRangeIndic" xml:space="preserve">
     <value>Show target range indicator</value>
   </data>
+  <data name="AutoAvoidObstacules" xml:space="preserve">
+    <value>Auto avoid obstacules</value>
+  </data>
   <data name="SkipEmptyCorpses" xml:space="preserve">
     <value>Skip empty corpses</value>
   </data>

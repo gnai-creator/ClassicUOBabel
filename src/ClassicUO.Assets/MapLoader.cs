@@ -417,7 +417,7 @@ namespace ClassicUO.Assets
             BlockData[0][block].StaticFile = file;
             BlockData[0][block].StaticAddress = BlockData[0][block].OriginalStaticAddress = address;
 
-            count = (uint) (count / (sizeof(StaidxBlockVerdata)));
+            count = (uint)(count / (sizeof(StaidxBlockVerdata)));
 
             if (count > 1024)
             {
@@ -431,7 +431,7 @@ namespace ClassicUO.Assets
         {
             ResetPatchesInBlockTable();
 
-            PatchesCount = (int) reader.ReadUInt32BE();
+            PatchesCount = (int)reader.ReadUInt32BE();
 
             if (PatchesCount < 0)
             {
