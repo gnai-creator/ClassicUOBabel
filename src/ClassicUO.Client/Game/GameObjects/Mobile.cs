@@ -534,22 +534,24 @@ namespace ClassicUO.Game.GameObjects
 
                     int incID = StepSoundOffset;
                     int soundID = 0x012B;
-                    int delaySound = 400;
+                    int delaySound = step.Run ? MovementSpeed.STEP_DELAY_RUN : MovementSpeed.STEP_DELAY_WALK;
 
                     if (IsMounted)
                     {
                         if (step.Run)
                         {
                             soundID = 0x0129;
-                            delaySound = 150;
+                            delaySound = MovementSpeed.STEP_DELAY_MOUNT_RUN;
                         }
                         else
                         {
                             incID = 0;
-                            delaySound = 350;
+                            delaySound = MovementSpeed.STEP_DELAY_MOUNT_WALK;
                         }
                     }
 
+                    float factor = ProfileManager.CurrentProfile.AnimationFrameDelay / (float)Constants.Character_Animation_Delay;
+                    delaySound = (int) (delaySound * factor);
                     delaySound = delaySound * 13 / 10;
 
                     soundID += incID;
