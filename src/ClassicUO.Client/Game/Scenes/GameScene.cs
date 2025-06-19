@@ -70,6 +70,8 @@ namespace ClassicUO.Game.Scenes
         private RenderTarget2D _world_render_target, _lightRenderTarget;
         private AnimatedStaticsManager _animatedStaticsManager;
         private DarkFogEffect _darkFogEffect;
+        private ThunderEffect _thunderEffect;
+        private NoiseEffect _noiseEffect;
 
         private readonly World _world;
 
@@ -114,6 +116,8 @@ namespace ClassicUO.Game.Scenes
             _animatedStaticsManager = new AnimatedStaticsManager();
             _animatedStaticsManager.Initialize();
             _darkFogEffect = new DarkFogEffect();
+            _thunderEffect = new ThunderEffect();
+            _noiseEffect = new NoiseEffect();
             _world.InfoBars.Load();
             _healthLinesManager = new HealthLinesManager(_world);
 
@@ -331,6 +335,13 @@ namespace ClassicUO.Game.Scenes
 
             _useItemQueue?.Clear();
             _world.MessageManager.MessageReceived -= ChatOnMessageReceived;
+
+            if (ProfileManager.CurrentProfile.UseDarkFog)
+            {
+                _darkFogEffect.Update(Camera.Bounds.Width, Camera.Bounds.Height);
+                _thunderEffect.Update(Camera.Bounds.Width, Camera.Bounds.Height);
+                _noiseEffect.Update(Camera.Bounds.Width, Camera.Bounds.Height);
+            }
 
             Settings.GlobalSettings.WindowSize = new Point(
                 Client.Game.Window.ClientBounds.Width,
@@ -904,15 +915,17 @@ namespace ClassicUO.Game.Scenes
                     if (SelectedObject.Object is Item it && GameActions.PickUp(_world, it.Serial, 0, 0))
                     {
                         _isMouseLeftDown = false;
-                    _holdMouse2secOverItemTime = 0;
+                        _holdMouse2secOverItemTime = 0;
+                    }
                 }
             }
 
             if (ProfileManager.CurrentProfile.UseDarkFog)
             {
                 _darkFogEffect.Update(Camera.Bounds.Width, Camera.Bounds.Height);
+                _thunderEffect.Update(Camera.Bounds.Width, Camera.Bounds.Height);
+                _noiseEffect.Update(Camera.Bounds.Width, Camera.Bounds.Height);
             }
-        }
         }
 
         public override bool Draw(UltimaBatcher2D batcher)
@@ -1034,17 +1047,27 @@ namespace ClassicUO.Game.Scenes
             if (ProfileManager.CurrentProfile.UseDarkFog)
             {
                 batcher.Begin();
-                Vector3 fogHue = ShaderHueTranslator.GetHueVector(0, false, 0.7f);
+                Vector3 fogHue = ShaderHueTranslator.GetHueVector(0, false, 0.1f);
+                batcher.Draw(
+                    SolidColorTextureCache.GetTexture(Color.Pink),
+                    new Rectangle(0, 0, Camera.Bounds.Width, Camera.Bounds.Height),
+                    fogHue
+                );
+                _darkFogEffect.Draw(batcher);
+                _thunderEffect.Draw(batcher);
+                _noiseEffect.Draw(batcher);
+                fogHue = ShaderHueTranslator.GetHueVector(0, false, 0.2f);
                 batcher.Draw(
                     SolidColorTextureCache.GetTexture(Color.Black),
                     new Rectangle(0, 0, Camera.Bounds.Width, Camera.Bounds.Height),
                     fogHue
                 );
-                _darkFogEffect.Draw(batcher);
                 batcher.End();
             }
 
             batcher.GraphicsDevice.Viewport = r_viewport;
+
+
 
             return base.Draw(batcher);
         }

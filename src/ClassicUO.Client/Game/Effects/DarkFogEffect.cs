@@ -9,139 +9,144 @@ namespace ClassicUO.Game.Effects
 {
     internal sealed class DarkFogEffect
     {
-        private readonly List<FogParticle> _particles = new List<FogParticle>();
         private readonly Random _random = new Random();
-        private Texture2D _texture;
+        private Texture2D _noiseTexture;
+        private float _time = 0f;
+        private float _offsetX = 0f;
+        private float _offsetY = 0f;
 
-        private Texture2D GetTexture(GraphicsDevice device)
+        private float Noise(float x, float y)
         {
-            if (_texture == null || _texture.IsDisposed)
+            return (MathF.Sin(x * 113f + y * 412f) * 6339f) % 1.0f;
+        }
+
+        private float SmoothNoise(float x, float y)
+        {
+            // Simplifica o smooth noise para melhor performance
+            float fractX = x - MathF.Floor(x);
+            float fractY = y - MathF.Floor(y);
+
+            fractX = fractX * fractX * (3 - 2 * fractX);
+            fractY = fractY * fractY * (3 - 2 * fractY);
+
+            int x1 = (int)MathF.Floor(x) & 255;
+            int y1 = (int)MathF.Floor(y) & 255;
+            int x2 = (x1 + 1) & 255;
+            int y2 = (y1 + 1) & 255;
+
+            float topLeft = Noise(x1, y1);
+            float topRight = Noise(x2, y1);
+            float bottomLeft = Noise(x1, y2);
+            float bottomRight = Noise(x2, y2);
+
+            float top = topLeft + fractX * (topRight - topLeft);
+            float bottom = bottomLeft + fractX * (bottomRight - bottomLeft);
+
+            return top + fractY * (bottom - top);
+        }
+
+        private Texture2D GenerateNoiseTexture(GraphicsDevice device, int width, int height)
+        {
+            if (_noiseTexture == null || _noiseTexture.IsDisposed)
             {
-                const int width = 128;
-                const int height = 32;
+                // Resolução bem reduzida para performance máxima
+                int texWidth = width ;
+                int texHeight = height;
 
-                _texture = new Texture2D(device, width, height);
-                var data = new Color[width * height];
+                _noiseTexture = new Texture2D(device, texWidth, texHeight);
+                var data = new Color[texWidth * texHeight];
 
-                float rx = width / 2f;
-                float ry = height / 2f;
+                float aspectRatio = (float)width / height;
 
-                for (int y = 0; y < height; y++)
+                // Pre-calcula valores para evitar cálculos repetidos
+                float timeOffsetX1 = _offsetX / 60f;
+                float timeOffsetX2 = _offsetX / 30f;
+
+                for (int y = 0; y < texHeight; y++)
                 {
-                    for (int x = 0; x < width; x++)
-                    {
-                        float dx = (x - rx) / rx;
-                        float dy = (y - ry) / ry;
-                        float dist = MathF.Sqrt(dx * dx + dy * dy);
-                        float alpha = Math.Clamp(1f - dist, 0f, 1f);
+                    float v = (float)y / texHeight;
 
-                        data[y * width + x] = new Color(0.35f, 0.3f, 0.45f, alpha);
+                    for (int x = 0; x < texWidth; x++)
+                    {
+                        float u = (float)x / texWidth * aspectRatio;
+
+                        // Reduzido para apenas 2 camadas para melhor performance
+                        float noise = 0f;
+
+                        // Primeira camada - base grande e suave
+                        float uv1x = u + timeOffsetX1;
+                        noise += SmoothNoise(uv1x * 0.5f, v * 0.5f);
+
+                        // Segunda camada - detalhe sutil
+                        float uv2x = u + timeOffsetX2;
+                        noise += SmoothNoise(uv2x * 1f, v * 1f) * 0.3f;
+
+                        // Normalização mais suave
+                        noise = (noise / 1.3f) + 0.15f;
+                        noise = Math.Clamp(noise, 0f, 1f);
+
+                        // Suaviza ainda mais com pow
+                        noise = MathF.Pow(noise, 1.5f);
+
+                        // Alpha extremamente sutil
+                        float alpha = noise * 0.2f;
+
+                        // Rosa suave e claro
+                        data[y * texWidth + x] = new Color(1f, 0.2f, 0.2f, alpha);
                     }
                 }
 
-                _texture.SetData(data);
+                _noiseTexture.SetData(data);
             }
 
-            return _texture;
+            return _noiseTexture;
         }
 
         public void Update(int width, int height)
         {
-            if (_particles.Count < 20)
+            _time += Time.Delta;
+            _offsetX += Time.Delta * 20f; // Movimento mais lento e suave
+
+            // Atualiza menos frequentemente para melhor performance
+            if (_time % 0.12f < Time.Delta)
             {
-                SpawnParticle(width, height);
+                _noiseTexture?.Dispose();
+                _noiseTexture = null;
             }
-
-            float dt = Time.Delta;
-            for (int i = 0; i < _particles.Count; i++)
-            {
-                FogParticle p = _particles[i];
-                p.Position += p.Velocity * dt;
-                p.Alpha -= dt * 0.05f;
-
-                if (p.Alpha <= 0)
-                {
-                    _particles.RemoveAt(i--);
-                }
-                else
-                {
-                    _particles[i] = p;
-                }
-            }
-        }
-
-        private void SpawnParticle(int width, int height)
-        {
-            int side = _random.Next(4);
-            Vector2 pos;
-            Vector2 vel;
-
-            const float minSpeed = 30f;
-            const float maxSpeed = 60f;
-
-            switch (side)
-            {
-                case 0: // left to right
-                    pos = new Vector2(-40, _random.Next(height));
-                    vel = new Vector2(minSpeed + (float)_random.NextDouble() * (maxSpeed - minSpeed), 0f);
-                    break;
-                case 1: // right to left
-                    pos = new Vector2(width + 40, _random.Next(height));
-                    vel = new Vector2(-minSpeed - (float)_random.NextDouble() * (maxSpeed - minSpeed), 0f);
-                    break;
-                case 2: // top to bottom
-                    pos = new Vector2(_random.Next(width), -40);
-                    vel = new Vector2(0f, minSpeed + (float)_random.NextDouble() * (maxSpeed - minSpeed));
-                    break;
-                default: // bottom to top
-                    pos = new Vector2(_random.Next(width), height + 40);
-                    vel = new Vector2(0f, -minSpeed - (float)_random.NextDouble() * (maxSpeed - minSpeed));
-                    break;
-            }
-
-            float scale = 0.8f + (float)_random.NextDouble() * 0.6f;
-            float alpha = 0.5f + (float)_random.NextDouble() * 0.3f;
-            float rotation = MathF.Atan2(vel.Y, vel.X);
-
-            _particles.Add(new FogParticle
-            {
-                Position = pos,
-                Velocity = vel,
-                Alpha = alpha,
-                Scale = scale,
-                Rotation = rotation
-            });
         }
 
         public void Draw(UltimaBatcher2D batcher)
         {
-            Texture2D tex = GetTexture(batcher.GraphicsDevice);
+            int width = batcher.GraphicsDevice.Viewport.Width;
+            int height = batcher.GraphicsDevice.Viewport.Height;
 
-            foreach (FogParticle p in _particles)
-            {
-                Vector3 hue = ShaderHueTranslator.GetHueVector(0, false, p.Alpha);
-                Vector2 scale = new Vector2(p.Scale);
-                batcher.Draw(
-                    tex,
-                    p.Position,
-                    null,
-                    hue,
-                    p.Rotation,
-                    new Vector2(tex.Width / 2f, tex.Height / 2f),
-                    scale,
-                    SpriteEffects.None,
-                    0f
-                );
-            }
-        }
+            Texture2D noiseTex = GenerateNoiseTexture(batcher.GraphicsDevice, width, height);
 
-        private struct FogParticle
-        {
-            public Vector2 Position;
-            public Vector2 Velocity;
-            public float Alpha;
-            public float Scale;
-            public float Rotation;
+            // Desenha com escala maior e offset negativo maior para garantir cobertura
+            batcher.Draw(
+                noiseTex,
+                new Vector2(-width * 0.2f, -height * 0.2f), // Offset maior para garantir cobertura
+                null,
+                Vector3.One,
+                0f,
+                Vector2.Zero,
+                new Vector2(10f, 10f), // Escala maior para garantir cobertura total
+                SpriteEffects.None,
+                0f
+            );
+
+            // Desenha uma segunda vez com offset diferente para mais suavidade
+            batcher.Draw(
+                noiseTex,
+                new Vector2(-width * 0.15f, -height * 0.15f),
+                null,
+                Vector3.One,
+                0f,
+                Vector2.Zero,
+                new Vector2(9.5f, 9.5f),
+                SpriteEffects.None,
+                0f
+            );
         }
     }
 }
