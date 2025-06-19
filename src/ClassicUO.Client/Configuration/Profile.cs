@@ -129,6 +129,7 @@ namespace ClassicUO.Configuration
         public bool BandageSelfOld { get; set; } = true;
         public bool EnableDeathScreen { get; set; } = true;
         public bool EnableBlackWhiteEffect { get; set; } = true;
+        public int AnimationFrameDelay { get; set; } = Constants.CHARACTER_ANIMATION_DELAY;
 
         // tooltip
         public bool UseTooltip { get; set; } = true;

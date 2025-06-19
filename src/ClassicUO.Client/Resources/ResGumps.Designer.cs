@@ -345,6 +345,17 @@ namespace ClassicUO.Resources
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Animation frame delay.
+        /// </summary>
+        public static string AnimationFrameDelay
+        {
+            get
+            {
+                return ResourceManager.GetString("AnimationFrameDelay", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Anisotropic Clamp.
         /// </summary>
         public static string AnisotropicClamp

@@ -489,6 +489,9 @@
   <data name="AnimatedWaterEffect" xml:space="preserve">
     <value>Animated water effect</value>
   </data>
+  <data name="AnimationFrameDelay" xml:space="preserve">
+    <value>Animation frame delay</value>
+  </data>
   <data name="UseXBREffectBETA" xml:space="preserve">
     <value>Use xBR effect [BETA]</value>
   </data>
