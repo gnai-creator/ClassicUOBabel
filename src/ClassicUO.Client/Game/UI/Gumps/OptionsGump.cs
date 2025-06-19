@@ -4110,7 +4110,7 @@ namespace ClassicUO.Game.UI.Gumps
             _currentProfile.AnimationFrameDelay = _sliderAnimationDelay.Value;
             _currentProfile.PartyAura = _partyAura.IsChecked;
             _currentProfile.PartyAuraHue = _partyAuraColorPickerBox.Hue;
-            _sliderAnimationDelay.Value = Constants.Character_Animation_Delay;
+            _sliderAnimationDelay.Value = _currentProfile.AnimationFrameDelay;
             _currentProfile.HideChatGradient = _hideChatGradient.IsChecked;
             _currentProfile.IgnoreGuildMessages = _ignoreGuildMessages.IsChecked;
             _currentProfile.IgnoreAllianceMessages = _ignoreAllianceMessages.IsChecked;
