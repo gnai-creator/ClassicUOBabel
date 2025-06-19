@@ -1354,7 +1354,7 @@ namespace ClassicUO.Game.UI.Gumps
 
 
             SettingsSection section5 = AddSettingsSection(box, "Terrain & Statics");
-            section5.Y = animSection.Bounds.Bottom + 40;
+            section5.Y = section4.Bounds.Bottom + 40;
 
             section5.Add
             (
@@ -3695,7 +3695,7 @@ namespace ClassicUO.Game.UI.Gumps
                     _partyAura.IsChecked = true;
                     _animatedWaterEffect.IsChecked = false;
                     _partyAuraColorPickerBox.Hue = 0x0044;
-                    _sliderAnimationDelay.Value = Constants.CHARACTER_ANIMATION_DELAY;
+                    _sliderAnimationDelay.Value = Constants.Character_Animation_Delay;
 
                     break;
 
@@ -4110,7 +4110,7 @@ namespace ClassicUO.Game.UI.Gumps
             _currentProfile.AnimationFrameDelay = _sliderAnimationDelay.Value;
             _currentProfile.PartyAura = _partyAura.IsChecked;
             _currentProfile.PartyAuraHue = _partyAuraColorPickerBox.Hue;
-                    _sliderAnimationDelay.Value = Constants.CHARACTER_ANIMATION_DELAY;
+            _sliderAnimationDelay.Value = Constants.Character_Animation_Delay;
             _currentProfile.HideChatGradient = _hideChatGradient.IsChecked;
             _currentProfile.IgnoreGuildMessages = _ignoreGuildMessages.IsChecked;
             _currentProfile.IgnoreAllianceMessages = _ignoreAllianceMessages.IsChecked;

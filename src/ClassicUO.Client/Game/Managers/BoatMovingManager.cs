@@ -6,6 +6,7 @@ using ClassicUO.Game.Data;
 using ClassicUO.Game.GameObjects;
 using ClassicUO.Network;
 using ClassicUO.Utility.Collections;
+using ClassicUO.Configuration;
 
 namespace ClassicUO.Game.Managers
 {
@@ -107,7 +108,7 @@ namespace ClassicUO.Game.Managers
 
             BoatStep step = new BoatStep();
             step.Serial = serial;
-            step.TimeDiff = _timePacket == 0 || empty ? GetVelocity(speed) : (int) (Time.Ticks - _timePacket);
+            step.TimeDiff = _timePacket == 0 || empty ? GetVelocity(speed) : (int)(Time.Ticks - _timePacket);
 
             step.Speed = speed;
             step.X = x;
@@ -230,7 +231,7 @@ namespace ClassicUO.Game.Managers
                     bool drift = step.MovingDir != step.FacingDir;
                     int maxDelay = step.TimeDiff /*- (int) Client.Game.FrameDelay[1]*/;
 
-                    int delay = (int) Time.Ticks - (int) item.LastStepTime;
+                    int delay = (int)Time.Ticks - (int)item.LastStepTime;
                     bool removeStep = delay >= maxDelay;
                     bool directionChange = false;
 
@@ -240,13 +241,13 @@ namespace ClassicUO.Game.Managers
                     {
                         if (maxDelay != 0)
                         {
-                            float steps = maxDelay / (float) ProfileManager.CurrentProfile.AnimationFrameDelay;
-                            float x = delay / (float) ProfileManager.CurrentProfile.AnimationFrameDelay;
+                            float steps = maxDelay / (float)ProfileManager.CurrentProfile.AnimationFrameDelay;
+                            float x = delay / (float)ProfileManager.CurrentProfile.AnimationFrameDelay;
                             float y = x;
-                            item.Offset.Z = (sbyte) ((step.Z - item.Z) * x * (4.0f / steps));
-                            MovementSpeed.GetPixelOffset((byte) step.MovingDir, ref x, ref y, steps);
-                            item.Offset.X = (sbyte) x;
-                            item.Offset.Y = (sbyte) y;
+                            item.Offset.Z = (sbyte)((step.Z - item.Z) * x * (4.0f / steps));
+                            MovementSpeed.GetPixelOffset((byte)step.MovingDir, ref x, ref y, steps);
+                            item.Offset.X = (sbyte)x;
+                            item.Offset.Y = (sbyte)y;
                         }
                     }
                     else
@@ -365,9 +366,9 @@ namespace ClassicUO.Game.Managers
 
                     if (removeStep)
                     {
-                        entity.X = (ushort) (x - it.X);
-                        entity.Y = (ushort) (y - it.Y);
-                        entity.Z = (sbyte) (z - it.Z);
+                        entity.X = (ushort)(x - it.X);
+                        entity.Y = (ushort)(y - it.Y);
+                        entity.Z = (sbyte)(z - it.Z);
                         entity.UpdateScreenPosition();
 
                         entity.Offset.X = 0;

@@ -10,7 +10,7 @@ namespace ClassicUO.Game
         public const int MAX_FPS = 250;
         public const int LOGIN_SCREEN_FPS = 60;
 
-        public const int CHARACTER_ANIMATION_DELAY = 80;
+        public static int Character_Animation_Delay = 80;
         public const int ITEM_EFFECT_ANIMATION_DELAY = 50;
 
         public const int MAX_STEP_COUNT = 5;

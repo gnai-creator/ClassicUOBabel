@@ -12,6 +12,7 @@ using ClassicUO.Renderer;
 using ClassicUO.Utility;
 using ClassicUO.Utility.Logging;
 using ClassicUO.Utility.Platforms;
+using ClassicUO.Configuration;
 using Microsoft.Xna.Framework;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;

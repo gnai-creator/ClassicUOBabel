@@ -129,7 +129,7 @@ namespace ClassicUO.Configuration
         public bool BandageSelfOld { get; set; } = true;
         public bool EnableDeathScreen { get; set; } = true;
         public bool EnableBlackWhiteEffect { get; set; } = true;
-        public int AnimationFrameDelay { get; set; } = Constants.CHARACTER_ANIMATION_DELAY;
+        public int AnimationFrameDelay { get; set; } = Constants.Character_Animation_Delay;
 
         // tooltip
         public bool UseTooltip { get; set; } = true;
@@ -454,11 +454,11 @@ namespace ClassicUO.Configuration
             {
                 SaveItemsGump(parent, xml, list);
 
-                Item first = (Item) parent.Items;
+                Item first = (Item)parent.Items;
 
                 while (first != null)
                 {
-                    Item next = (Item) first.Next;
+                    Item next = (Item)first.Next;
 
                     SaveItemsGumpRecursive(first, xml, list);
 
@@ -532,7 +532,7 @@ namespace ClassicUO.Configuration
 
                         try
                         {
-                            GumpType type = (GumpType) int.Parse(xml.GetAttribute(nameof(type)));
+                            GumpType type = (GumpType)int.Parse(xml.GetAttribute(nameof(type)));
                             int x = int.Parse(xml.GetAttribute(nameof(x)));
                             int y = int.Parse(xml.GetAttribute(nameof(y)));
                             uint serial = uint.Parse(xml.GetAttribute(nameof(serial)));
@@ -574,7 +574,7 @@ namespace ClassicUO.Configuration
                                     break;
 
                                 case GumpType.Journal:
-                                    if(ProfileManager.CurrentProfile.UseAlternateJournal)
+                                    if (ProfileManager.CurrentProfile.UseAlternateJournal)
                                         gump = new ResizableJournal(world);
                                     else
                                         gump = new JournalGump(world);
@@ -700,7 +700,7 @@ namespace ClassicUO.Configuration
                         {
                             try
                             {
-                                GumpType type = (GumpType) int.Parse(xml.GetAttribute("type"));
+                                GumpType type = (GumpType)int.Parse(xml.GetAttribute("type"));
                                 int x = int.Parse(xml.GetAttribute("x"));
                                 int y = int.Parse(xml.GetAttribute("y"));
                                 uint serial = uint.Parse(xml.GetAttribute("serial"));
