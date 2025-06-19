@@ -579,7 +579,7 @@ namespace ClassicUO.Game.GameObjects
 
             bool mirror = false;
             animations.GetAnimDirection(ref dir, ref mirror);
-            int currentDelay = Constants.CHARACTER_ANIMATION_DELAY;
+            int currentDelay = ProfileManager.CurrentProfile.AnimationFrameDelay;
 
             if (id < animations.MaxAnimationCount && dir < 5)
             {
@@ -767,8 +767,8 @@ namespace ClassicUO.Game.GameObjects
                         }
                         else
                         {
-                            float steps = maxDelay / (float)Constants.CHARACTER_ANIMATION_DELAY;
-                            float x = delay / (float)Constants.CHARACTER_ANIMATION_DELAY;
+                            float steps = maxDelay / (float)ProfileManager.CurrentProfile.AnimationFrameDelay;
+                            float x = delay / (float)ProfileManager.CurrentProfile.AnimationFrameDelay;
                             float y = x;
                             Offset.Z = (sbyte)((step.Z - Z) * x * (4.0f / steps));
                             MovementSpeed.GetPixelOffset(step.Direction, ref x, ref y, steps);

@@ -127,6 +127,7 @@ namespace ClassicUO.Game.UI.Gumps
         // general
         private HSliderBar _sliderFPS, _circleOfTranspRadius;
         private HSliderBar _sliderSpeechDelay;
+        private HSliderBar _sliderAnimationDelay;
         private HSliderBar _sliderZoom;
         private HSliderBar _soundsVolume, _musicVolume, _loginMusicVolume;
         private ClickableColorBox _speechColorPickerBox, _emoteColorPickerBox, _yellColorPickerBox, _whisperColorPickerBox, _partyMessageColorPickerBox, _guildMessageColorPickerBox, _allyMessageColorPickerBox, _chatMessageColorPickerBox, _partyAuraColorPickerBox;
@@ -1353,7 +1354,7 @@ namespace ClassicUO.Game.UI.Gumps
 
 
             SettingsSection section5 = AddSettingsSection(box, "Terrain & Statics");
-            section5.Y = section4.Bounds.Bottom + 40;
+            section5.Y = animSection.Bounds.Bottom + 40;
 
             section5.Add
             (
@@ -1921,9 +1922,27 @@ namespace ClassicUO.Game.UI.Gumps
                 )
             );
 
+            SettingsSection animSection = AddSettingsSection(box, "Animations");
+            animSection.Y = section4.Bounds.Bottom + 40;
+            animSection.Add(AddLabel(null, ResGumps.AnimationFrameDelay, startX, startY));
+            animSection.AddRight
+            (
+                _sliderAnimationDelay = AddHSlider
+                (
+                    null,
+                    20,
+                    200,
+                    _currentProfile.AnimationFrameDelay,
+                    startX,
+                    startY,
+                    180
+                )
+            );
+
+
 
             SettingsSection section5 = AddSettingsSection(box, "Shadows");
-            section5.Y = section4.Bounds.Bottom + 40;
+            section5.Y = animSection.Bounds.Bottom + 40;
 
             section5.Add
             (
@@ -3676,6 +3695,7 @@ namespace ClassicUO.Game.UI.Gumps
                     _partyAura.IsChecked = true;
                     _animatedWaterEffect.IsChecked = false;
                     _partyAuraColorPickerBox.Hue = 0x0044;
+                    _sliderAnimationDelay.Value = Constants.CHARACTER_ANIMATION_DELAY;
 
                     break;
 
@@ -4087,8 +4107,10 @@ namespace ClassicUO.Game.UI.Gumps
 
             _currentProfile.AuraOnMouse = _auraMouse.IsChecked;
             _currentProfile.AnimatedWaterEffect = _animatedWaterEffect.IsChecked;
+            _currentProfile.AnimationFrameDelay = _sliderAnimationDelay.Value;
             _currentProfile.PartyAura = _partyAura.IsChecked;
             _currentProfile.PartyAuraHue = _partyAuraColorPickerBox.Hue;
+                    _sliderAnimationDelay.Value = Constants.CHARACTER_ANIMATION_DELAY;
             _currentProfile.HideChatGradient = _hideChatGradient.IsChecked;
             _currentProfile.IgnoreGuildMessages = _ignoreGuildMessages.IsChecked;
             _currentProfile.IgnoreAllianceMessages = _ignoreAllianceMessages.IsChecked;
