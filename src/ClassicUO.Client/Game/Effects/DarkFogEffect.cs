@@ -17,32 +17,29 @@ namespace ClassicUO.Game.Effects
 
         private float Noise(float x, float y)
         {
-            return (MathF.Sin(x * 113f + y * 412f) * 6339f) % 1.0f;
+            float n = MathF.Sin(x * 113f + y * 412f) * 6339f;
+            return n - MathF.Floor(n);
         }
 
         private float SmoothNoise(float x, float y)
         {
-            // Simplifica o smooth noise para melhor performance
-            float fractX = x - MathF.Floor(x);
-            float fractY = y - MathF.Floor(y);
+            float ix = MathF.Floor(x);
+            float iy = MathF.Floor(y);
+            float fx = x - ix;
+            float fy = y - iy;
 
-            fractX = fractX * fractX * (3 - 2 * fractX);
-            fractY = fractY * fractY * (3 - 2 * fractY);
+            fx = fx * fx * (3f - 2f * fx);
+            fy = fy * fy * (3f - 2f * fy);
 
-            int x1 = (int)MathF.Floor(x) & 255;
-            int y1 = (int)MathF.Floor(y) & 255;
-            int x2 = (x1 + 1) & 255;
-            int y2 = (y1 + 1) & 255;
+            float topLeft = Noise(ix, iy);
+            float topRight = Noise(ix + 1f, iy);
+            float bottomLeft = Noise(ix, iy + 1f);
+            float bottomRight = Noise(ix + 1f, iy + 1f);
 
-            float topLeft = Noise(x1, y1);
-            float topRight = Noise(x2, y1);
-            float bottomLeft = Noise(x1, y2);
-            float bottomRight = Noise(x2, y2);
+            float top = MathHelper.Lerp(topLeft, topRight, fx);
+            float bottom = MathHelper.Lerp(bottomLeft, bottomRight, fx);
 
-            float top = topLeft + fractX * (topRight - topLeft);
-            float bottom = bottomLeft + fractX * (bottomRight - bottomLeft);
-
-            return top + fractY * (bottom - top);
+            return MathHelper.Lerp(top, bottom, fy);
         }
 
         private Texture2D GenerateNoiseTexture(GraphicsDevice device, int width, int height)
@@ -59,8 +56,9 @@ namespace ClassicUO.Game.Effects
                 float aspectRatio = (float)width / height;
 
                 // Pre-calcula valores para evitar cálculos repetidos
-                float timeOffsetX1 = _offsetX / 60f;
-                float timeOffsetX2 = _offsetX / 30f;
+                float time40 = _offsetX / 40f;
+                float time10 = _offsetX / 10f;
+                float time30 = _offsetX / 30f;
 
                 for (int y = 0; y < texHeight; y++)
                 {
@@ -70,28 +68,21 @@ namespace ClassicUO.Game.Effects
                     {
                         float u = (float)x / texWidth * aspectRatio;
 
-                        // Reduzido para apenas 2 camadas para melhor performance
-                        float noise = 0f;
+                        float uvx = u + time40;
+                        float uv2x = u + time10;
+                        float uv3x = u + time30;
 
-                        // Primeira camada - base grande e suave
-                        float uv1x = u + timeOffsetX1;
-                        noise += SmoothNoise(uv1x * 0.5f, v * 0.5f);
+                        float col = SmoothNoise(uvx * 4f, v * 4f);
+                        col += SmoothNoise(uvx * 8f, v * 8f) * 0.5f;
+                        col += SmoothNoise(uv2x * 16f, v * 16f) * 0.25f;
+                        col += SmoothNoise(uv3x * 32f, v * 32f) * 0.125f;
+                        col += SmoothNoise(uv3x * 64f, v * 64f) * 0.0625f;
 
-                        // Segunda camada - detalhe sutil
-                        float uv2x = u + timeOffsetX2;
-                        noise += SmoothNoise(uv2x * 1f, v * 1f) * 0.3f;
+                        col /= 2f;
+                        col *= MathHelper.Clamp((col - 0.2f) / (0.4f - 0.2f), 0f, 1f);
 
-                        // Normalização mais suave
-                        noise = (noise / 1.3f) + 0.15f;
-                        noise = Math.Clamp(noise, 0f, 1f);
+                        float alpha = col * 0.2f;
 
-                        // Suaviza ainda mais com pow
-                        noise = MathF.Pow(noise, 1.5f);
-
-                        // Alpha extremamente sutil
-                        float alpha = noise * 0.2f;
-
-                        // Rosa suave e claro
                         data[y * texWidth + x] = new Color(1f, 0.2f, 0.2f, alpha);
                     }
                 }
