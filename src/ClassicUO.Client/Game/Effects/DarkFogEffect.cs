@@ -82,7 +82,7 @@ namespace ClassicUO.Game.Effects
         {
             Texture2D tex = GetTexture(batcher.GraphicsDevice);
 
-            foreach (ref readonly FogParticle p in _particles)
+            foreach (FogParticle p in _particles)
             {
                 Vector3 hue = ShaderHueTranslator.GetHueVector(0, false, p.Alpha);
                 int size = (int)(tex.Width * p.Scale);
