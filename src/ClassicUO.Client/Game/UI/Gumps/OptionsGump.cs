@@ -138,7 +138,7 @@ namespace ClassicUO.Game.UI.Gumps
         private NiceButton _setAsNewDefault;
 
         // video
-        private Checkbox _use_old_status_gump, _statusGumpBarMutuallyExclusive, _windowBorderless, _enableDeathScreen, _enableBlackWhiteEffect, _altLights, _enableLight, _enableShadows, _enableShadowsStatics, _auraMouse, _runMouseInSeparateThread, _useColoredLights, _darkNights, _partyAura, _hideChatGradient, _animatedWaterEffect;
+        private Checkbox _use_old_status_gump, _statusGumpBarMutuallyExclusive, _windowBorderless, _enableDeathScreen, _enableBlackWhiteEffect, _altLights, _enableLight, _enableShadows, _enableShadowsStatics, _auraMouse, _runMouseInSeparateThread, _useColoredLights, _darkNights, _darkFog, _partyAura, _hideChatGradient, _animatedWaterEffect;
         private Combobox _lightLevelType;
         private Checkbox _use_smooth_boat_movement;
         private HSliderBar _terrainShadowLevel;
@@ -1828,6 +1828,18 @@ namespace ClassicUO.Game.UI.Gumps
                     null,
                     ResGumps.DarkNights,
                     _currentProfile.UseDarkNights,
+                    startX,
+                    startY
+                )
+            );
+
+            section3.Add
+            (
+                _darkFog = AddCheckBox
+                (
+                    null,
+                    ResGumps.DarkFog,
+                    _currentProfile.UseDarkFog,
                     startX,
                     startY
                 )
@@ -3655,6 +3667,7 @@ namespace ClassicUO.Game.UI.Gumps
                     _lightLevelType.SelectedIndex = 0;
                     _useColoredLights.IsChecked = false;
                     _darkNights.IsChecked = false;
+                    _darkFog.IsChecked = false;
                     _enableShadows.IsChecked = true;
                     _enableShadowsStatics.IsChecked = true;
                     _terrainShadowLevel.Value = 15;
@@ -4064,6 +4077,7 @@ namespace ClassicUO.Game.UI.Gumps
 
             _currentProfile.UseColoredLights = _useColoredLights.IsChecked;
             _currentProfile.UseDarkNights = _darkNights.IsChecked;
+            _currentProfile.UseDarkFog = _darkFog.IsChecked;
             _currentProfile.ShadowsEnabled = _enableShadows.IsChecked;
             _currentProfile.ShadowsStatics = _enableShadowsStatics.IsChecked;
             _currentProfile.TerrainShadowsLevel = _terrainShadowLevel.Value;

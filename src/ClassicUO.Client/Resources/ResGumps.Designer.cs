@@ -1225,6 +1225,17 @@ namespace ClassicUO.Resources
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Dark fog.
+        /// </summary>
+        public static string DarkFog
+        {
+            get
+            {
+                return ResourceManager.GetString("DarkFog", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Data.
         /// </summary>
         public static string Data
