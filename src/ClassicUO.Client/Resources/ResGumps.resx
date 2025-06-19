@@ -453,6 +453,9 @@
   <data name="DarkNights" xml:space="preserve">
     <value>Dark nights</value>
   </data>
+  <data name="DarkFog" xml:space="preserve">
+    <value>Dark fog</value>
+  </data>
   <data name="UseColoredLights" xml:space="preserve">
     <value>Use colored lights</value>
   </data>

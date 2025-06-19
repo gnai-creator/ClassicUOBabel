@@ -1023,6 +1023,18 @@ namespace ClassicUO.Game.Scenes
             DrawSelection(batcher);
             batcher.End();
 
+            if (ProfileManager.CurrentProfile.UseDarkFog)
+            {
+                batcher.Begin();
+                Vector3 fogHue = ShaderHueTranslator.GetHueVector(0, false, 0.7f);
+                batcher.Draw(
+                    SolidColorTextureCache.GetTexture(Color.Black),
+                    new Rectangle(0, 0, Camera.Bounds.Width, Camera.Bounds.Height),
+                    fogHue
+                );
+                batcher.End();
+            }
+
             batcher.GraphicsDevice.Viewport = r_viewport;
 
             return base.Draw(batcher);
