@@ -240,8 +240,8 @@ namespace ClassicUO.Game.Managers
                     {
                         if (maxDelay != 0)
                         {
-                            float steps = maxDelay / (float) Constants.CHARACTER_ANIMATION_DELAY;
-                            float x = delay / (float) Constants.CHARACTER_ANIMATION_DELAY;
+                            float steps = maxDelay / (float) ProfileManager.CurrentProfile.AnimationFrameDelay;
+                            float x = delay / (float) ProfileManager.CurrentProfile.AnimationFrameDelay;
                             float y = x;
                             item.Offset.Z = (sbyte) ((step.Z - item.Z) * x * (4.0f / steps));
                             MovementSpeed.GetPixelOffset((byte) step.MovingDir, ref x, ref y, steps);

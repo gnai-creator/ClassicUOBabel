@@ -540,7 +540,7 @@ namespace ClassicUO.Game.GameObjects
                     }
                 }
 
-                LastAnimationChangeTime = Time.Ticks + Constants.CHARACTER_ANIMATION_DELAY;
+                LastAnimationChangeTime = Time.Ticks + ProfileManager.CurrentProfile.AnimationFrameDelay;
             }
         }
     }
