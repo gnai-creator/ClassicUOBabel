@@ -8,6 +8,7 @@ using ClassicUO.Configuration;
 using ClassicUO.Game.Data;
 using ClassicUO.Game.GameObjects;
 using ClassicUO.Game.Managers;
+using ClassicUO.Game.Effects;
 using ClassicUO.Game.UI.Controls;
 using ClassicUO.Game.UI.Gumps;
 using ClassicUO.Input;
@@ -68,6 +69,7 @@ namespace ClassicUO.Game.Scenes
         private bool _useObjectHandles;
         private RenderTarget2D _world_render_target, _lightRenderTarget;
         private AnimatedStaticsManager _animatedStaticsManager;
+        private DarkFogEffect _darkFogEffect;
 
         private readonly World _world;
 
@@ -111,6 +113,7 @@ namespace ClassicUO.Game.Scenes
             _world.Macros.Load();
             _animatedStaticsManager = new AnimatedStaticsManager();
             _animatedStaticsManager.Initialize();
+            _darkFogEffect = new DarkFogEffect();
             _world.InfoBars.Load();
             _healthLinesManager = new HealthLinesManager(_world);
 
@@ -901,10 +904,15 @@ namespace ClassicUO.Game.Scenes
                     if (SelectedObject.Object is Item it && GameActions.PickUp(_world, it.Serial, 0, 0))
                     {
                         _isMouseLeftDown = false;
-                        _holdMouse2secOverItemTime = 0;
-                    }
+                    _holdMouse2secOverItemTime = 0;
                 }
             }
+
+            if (ProfileManager.CurrentProfile.UseDarkFog)
+            {
+                _darkFogEffect.Update(Camera.Bounds.Width, Camera.Bounds.Height);
+            }
+        }
         }
 
         public override bool Draw(UltimaBatcher2D batcher)
@@ -1032,6 +1040,7 @@ namespace ClassicUO.Game.Scenes
                     new Rectangle(0, 0, Camera.Bounds.Width, Camera.Bounds.Height),
                     fogHue
                 );
+                _darkFogEffect.Draw(batcher);
                 batcher.End();
             }
 
