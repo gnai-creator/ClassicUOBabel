@@ -5,6 +5,7 @@ using ClassicUO.Utility;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+
 namespace ClassicUO.Game.Effects
 {
     internal sealed class DarkFogEffect
@@ -36,19 +37,19 @@ namespace ClassicUO.Game.Effects
             float bottomLeft = Noise(ix, iy + 1f);
             float bottomRight = Noise(ix + 1f, iy + 1f);
 
-            float top = MathHelper.Lerp(topLeft, topRight, fx);
-            float bottom = MathHelper.Lerp(bottomLeft, bottomRight, fx);
+            float top = Microsoft.Xna.Framework.MathHelper.Lerp(topLeft, topRight, fx);
+            float bottom = Microsoft.Xna.Framework.MathHelper.Lerp(bottomLeft, bottomRight, fx);
 
-            return MathHelper.Lerp(top, bottom, fy);
+            return Microsoft.Xna.Framework.MathHelper.Lerp(top, bottom, fy);
         }
 
         private Texture2D GenerateNoiseTexture(GraphicsDevice device, int width, int height)
         {
             if (_noiseTexture == null || _noiseTexture.IsDisposed)
             {
-                // Resolução bem reduzida para performance máxima
-                int texWidth = width ;
-                int texHeight = height;
+                // Reduz resolução para melhor performance
+                int texWidth = width / 4;  // Reduz resolução para 1/4
+                int texHeight = height / 4;
 
                 _noiseTexture = new Texture2D(device, texWidth, texHeight);
                 var data = new Color[texWidth * texHeight];
@@ -57,31 +58,40 @@ namespace ClassicUO.Game.Effects
 
                 // Pre-calcula valores para evitar cálculos repetidos
                 float time40 = _offsetX / 40f;
+                float time20 = _offsetX / 20f;
                 float time10 = _offsetX / 10f;
-                float time30 = _offsetX / 30f;
+
+                // Pre-calcula escalas de noise
+                float scale1 = 2f;
+                float scale2 = 4f;
+                float scale3 = 8f;
 
                 for (int y = 0; y < texHeight; y++)
                 {
                     float v = (float)y / texHeight;
+                    float v1 = v * scale1;
+                    float v2 = v * scale2;
+                    float v3 = v * scale3;
 
                     for (int x = 0; x < texWidth; x++)
                     {
                         float u = (float)x / texWidth * aspectRatio;
 
                         float uvx = u + time40;
-                        float uv2x = u + time10;
-                        float uv3x = u + time30;
+                        float uv2x = u + time20;
+                        float uv3x = u + time10;
 
-                        float col = SmoothNoise(uvx * 4f, v * 4f);
-                        col += SmoothNoise(uvx * 8f, v * 8f) * 0.5f;
-                        col += SmoothNoise(uv2x * 16f, v * 16f) * 0.25f;
-                        col += SmoothNoise(uv3x * 32f, v * 32f) * 0.125f;
-                        col += SmoothNoise(uv3x * 64f, v * 64f) * 0.0625f;
+                        // Reduz para 3 camadas de noise
+                        float col = SmoothNoise(uvx * scale1, v1);
+                        col += SmoothNoise(uv2x * scale2, v2) * 0.5f;
+                        col += SmoothNoise(uv3x * scale3, v3) * 0.25f;
 
-                        col /= 2f;
-                        col *= MathHelper.Clamp((col - 0.2f) / (0.4f - 0.2f), 0f, 1f);
+                        col /= 1.75f;
 
-                        float alpha = col * 0.2f;
+                        // Simplifica o smoothstep
+                        col = Microsoft.Xna.Framework.MathHelper.Clamp((col - 0.2f) / 0.2f, 0f, 1f);
+
+                        float alpha = col * 0.15f; // Alpha mais sutil
 
                         data[y * texWidth + x] = new Color(1f, 0.2f, 0.2f, alpha);
                     }
@@ -96,10 +106,10 @@ namespace ClassicUO.Game.Effects
         public void Update(int width, int height)
         {
             _time += Time.Delta;
-            _offsetX += Time.Delta * 20f; // Movimento mais lento e suave
+            _offsetX += Time.Delta * 30f; // Velocidade ajustada
 
-            // Atualiza menos frequentemente para melhor performance
-            if (_time % 0.12f < Time.Delta)
+            // Atualiza menos frequentemente
+            if (_time % 0.15f < Time.Delta)
             {
                 _noiseTexture?.Dispose();
                 _noiseTexture = null;
@@ -113,28 +123,15 @@ namespace ClassicUO.Game.Effects
 
             Texture2D noiseTex = GenerateNoiseTexture(batcher.GraphicsDevice, width, height);
 
-            // Desenha com escala maior e offset negativo maior para garantir cobertura
+            // Desenha com escala maior para compensar a resolução menor
             batcher.Draw(
                 noiseTex,
-                new Vector2(-width * 0.2f, -height * 0.2f), // Offset maior para garantir cobertura
+                new Vector2(-width * 0.1f, -height * 0.1f),
                 null,
                 Vector3.One,
                 0f,
                 Vector2.Zero,
-                new Vector2(10f, 10f), // Escala maior para garantir cobertura total
-                SpriteEffects.None,
-                0f
-            );
-
-            // Desenha uma segunda vez com offset diferente para mais suavidade
-            batcher.Draw(
-                noiseTex,
-                new Vector2(-width * 0.15f, -height * 0.15f),
-                null,
-                Vector3.One,
-                0f,
-                Vector2.Zero,
-                new Vector2(9.5f, 9.5f),
+                new Vector2(4.2f, 4.2f), // Escala ajustada para a nova resolução
                 SpriteEffects.None,
                 0f
             );

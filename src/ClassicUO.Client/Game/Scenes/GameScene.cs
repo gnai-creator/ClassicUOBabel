@@ -70,7 +70,7 @@ namespace ClassicUO.Game.Scenes
         private RenderTarget2D _world_render_target, _lightRenderTarget;
         private AnimatedStaticsManager _animatedStaticsManager;
         private DarkFogEffect _darkFogEffect;
-        private ThunderEffect _thunderEffect;
+        // private ThunderEffect _thunderEffect;
         private NoiseEffect _noiseEffect;
 
         private readonly World _world;
@@ -116,7 +116,7 @@ namespace ClassicUO.Game.Scenes
             _animatedStaticsManager = new AnimatedStaticsManager();
             _animatedStaticsManager.Initialize();
             _darkFogEffect = new DarkFogEffect();
-            _thunderEffect = new ThunderEffect();
+            // _thunderEffect = new ThunderEffect();
             _noiseEffect = new NoiseEffect();
             _world.InfoBars.Load();
             _healthLinesManager = new HealthLinesManager(_world);
@@ -339,7 +339,7 @@ namespace ClassicUO.Game.Scenes
             if (ProfileManager.CurrentProfile.UseDarkFog)
             {
                 _darkFogEffect.Update(Camera.Bounds.Width, Camera.Bounds.Height);
-                _thunderEffect.Update(Camera.Bounds.Width, Camera.Bounds.Height);
+                // _thunderEffect.Update(Camera.Bounds.Width, Camera.Bounds.Height);
                 _noiseEffect.Update(Camera.Bounds.Width, Camera.Bounds.Height);
             }
 
@@ -923,7 +923,7 @@ namespace ClassicUO.Game.Scenes
             if (ProfileManager.CurrentProfile.UseDarkFog)
             {
                 _darkFogEffect.Update(Camera.Bounds.Width, Camera.Bounds.Height);
-                _thunderEffect.Update(Camera.Bounds.Width, Camera.Bounds.Height);
+                // _thunderEffect.Update(Camera.Bounds.Width, Camera.Bounds.Height);
                 _noiseEffect.Update(Camera.Bounds.Width, Camera.Bounds.Height);
             }
         }
@@ -1054,7 +1054,7 @@ namespace ClassicUO.Game.Scenes
                     fogHue
                 );
                 _darkFogEffect.Draw(batcher);
-                _thunderEffect.Draw(batcher);
+                // _thunderEffect.Draw(batcher);
                 _noiseEffect.Draw(batcher);
                 fogHue = ShaderHueTranslator.GetHueVector(0, false, 0.2f);
                 batcher.Draw(
