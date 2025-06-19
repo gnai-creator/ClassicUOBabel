@@ -17,20 +17,25 @@ namespace ClassicUO.Game.Effects
         {
             if (_texture == null || _texture.IsDisposed)
             {
-                const int size = 64;
-                _texture = new Texture2D(device, size, size);
-                var data = new Color[size * size];
-                float radius = size / 2f;
+                const int width = 128;
+                const int height = 32;
 
-                for (int y = 0; y < size; y++)
+                _texture = new Texture2D(device, width, height);
+                var data = new Color[width * height];
+
+                float rx = width / 2f;
+                float ry = height / 2f;
+
+                for (int y = 0; y < height; y++)
                 {
-                    for (int x = 0; x < size; x++)
+                    for (int x = 0; x < width; x++)
                     {
-                        float dx = x - radius;
-                        float dy = y - radius;
+                        float dx = (x - rx) / rx;
+                        float dy = (y - ry) / ry;
                         float dist = MathF.Sqrt(dx * dx + dy * dy);
-                        float alpha = Math.Clamp(1f - dist / radius, 0f, 1f);
-                        data[y * size + x] = new Color(0f, 0f, 0f, alpha);
+                        float alpha = Math.Clamp(1f - dist, 0f, 1f);
+
+                        data[y * width + x] = new Color(0.35f, 0.3f, 0.45f, alpha);
                     }
                 }
 
@@ -67,15 +72,45 @@ namespace ClassicUO.Game.Effects
 
         private void SpawnParticle(int width, int height)
         {
-            float x = _random.Next(width);
-            float y = _random.Next(height);
-            float angle = (float)(_random.NextDouble() * Math.PI * 2);
-            float speed = 10f + (float)_random.NextDouble() * 20f;
-            Vector2 vel = new Vector2(MathF.Cos(angle) * speed, MathF.Sin(angle) * speed);
-            float scale = 0.5f + (float)_random.NextDouble();
-            float alpha = 0.3f + (float)_random.NextDouble() * 0.2f;
+            int side = _random.Next(4);
+            Vector2 pos;
+            Vector2 vel;
 
-            _particles.Add(new FogParticle { Position = new Vector2(x, y), Velocity = vel, Alpha = alpha, Scale = scale });
+            const float minSpeed = 30f;
+            const float maxSpeed = 60f;
+
+            switch (side)
+            {
+                case 0: // left to right
+                    pos = new Vector2(-40, _random.Next(height));
+                    vel = new Vector2(minSpeed + (float)_random.NextDouble() * (maxSpeed - minSpeed), 0f);
+                    break;
+                case 1: // right to left
+                    pos = new Vector2(width + 40, _random.Next(height));
+                    vel = new Vector2(-minSpeed - (float)_random.NextDouble() * (maxSpeed - minSpeed), 0f);
+                    break;
+                case 2: // top to bottom
+                    pos = new Vector2(_random.Next(width), -40);
+                    vel = new Vector2(0f, minSpeed + (float)_random.NextDouble() * (maxSpeed - minSpeed));
+                    break;
+                default: // bottom to top
+                    pos = new Vector2(_random.Next(width), height + 40);
+                    vel = new Vector2(0f, -minSpeed - (float)_random.NextDouble() * (maxSpeed - minSpeed));
+                    break;
+            }
+
+            float scale = 0.8f + (float)_random.NextDouble() * 0.6f;
+            float alpha = 0.5f + (float)_random.NextDouble() * 0.3f;
+            float rotation = MathF.Atan2(vel.Y, vel.X);
+
+            _particles.Add(new FogParticle
+            {
+                Position = pos,
+                Velocity = vel,
+                Alpha = alpha,
+                Scale = scale,
+                Rotation = rotation
+            });
         }
 
         public void Draw(UltimaBatcher2D batcher)
@@ -85,9 +120,18 @@ namespace ClassicUO.Game.Effects
             foreach (FogParticle p in _particles)
             {
                 Vector3 hue = ShaderHueTranslator.GetHueVector(0, false, p.Alpha);
-                int size = (int)(tex.Width * p.Scale);
-                var dest = new Rectangle((int)p.Position.X - size / 2, (int)p.Position.Y - size / 2, size, size);
-                batcher.Draw(tex, dest, hue);
+                Vector2 scale = new Vector2(p.Scale);
+                batcher.Draw(
+                    tex,
+                    p.Position,
+                    null,
+                    hue,
+                    p.Rotation,
+                    new Vector2(tex.Width / 2f, tex.Height / 2f),
+                    scale,
+                    SpriteEffects.None,
+                    0f
+                );
             }
         }
 
@@ -97,6 +141,7 @@ namespace ClassicUO.Game.Effects
             public Vector2 Velocity;
             public float Alpha;
             public float Scale;
+            public float Rotation;
         }
     }
 }
