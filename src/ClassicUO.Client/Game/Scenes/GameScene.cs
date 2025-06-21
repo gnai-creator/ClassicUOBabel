@@ -336,7 +336,7 @@ namespace ClassicUO.Game.Scenes
             _useItemQueue?.Clear();
             _world.MessageManager.MessageReceived -= ChatOnMessageReceived;
 
-            if (ProfileManager.CurrentProfile.UseDarkFog)
+            if (ProfileManager.CurrentProfile != null && ProfileManager.CurrentProfile.UseDarkFog)
             {
                 // _darkFogEffect.Update(Camera.Bounds.Width, Camera.Bounds.Height);
                 // _thunderEffect.Update(Camera.Bounds.Width, Camera.Bounds.Height);
