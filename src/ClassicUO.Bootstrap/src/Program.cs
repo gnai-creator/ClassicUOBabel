@@ -63,7 +63,7 @@ sealed class ClassicUOHost : IPluginHandler
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     delegate IntPtr dGetCliloc(int cliloc, IntPtr args, bool capitalize);
-    
+
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     delegate short dGetPacketLength(int id);
 
@@ -145,7 +145,7 @@ sealed class ClassicUOHost : IPluginHandler
     private readonly FuncPointer<dOnPluginFocusWindow> _focusGainedDel, _focusLostDel;
     private readonly FuncPointer<dOnPluginSdlEvent> _sdlEventDel;
     private readonly FuncPointer<dOnPluginCommandList> _cmdListDel;
-    
+
 
     public ClassicUOHost()
     {
@@ -168,7 +168,7 @@ sealed class ClassicUOHost : IPluginHandler
 
     public void Run(string[] args)
     {
-        var libName = "./cuo";
+        var libName = "./cuoapi";
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
@@ -189,7 +189,7 @@ sealed class ClassicUOHost : IPluginHandler
         }
 
         Console.WriteLine("ClassicUO lib loaded: {0}", libName);
-        
+
         var libPtr = Native.LoadLibrary(libName);
         if (libPtr == IntPtr.Zero)
         {
